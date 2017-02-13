@@ -16,15 +16,16 @@ public class Chess extends JFrame implements ActionListener {
 
     private Container contents;
 
-    private JLabel[][] squares = new JLabel[8][8];
-    private Tile[][] tiles = new Tile[8][8];
+    private JLabel[][] squares = new JLabel[8][8];//set the chess background. squares is the look of the chess play
+    private Tile[][] tiles = new Tile[8][8]; // set the chess tiles to keep track of the chess movement, seperately from the background labels.
+    // tiles keep track of the chess at a position(63 intotal) in a stack. each time a chess move to the tile position, the image is pushed in to the stack,
+    // when a chess jump to other position, the image is poped out of the stack.  the look of the label is updated whever therer is a change of  status in tile positon
     private Color colorgreen = Color.GREEN;
 
     private List<move> steps;
     private int cnt = 0;
 
-
-
+    //define three buttons
     JButton previous;
     JButton next;
     JButton refresh;
@@ -46,17 +47,14 @@ public class Chess extends JFrame implements ActionListener {
     Image white_queen;
     Image white_rook;
 
-    String w_k = "74";
-    String w_q = "73";
-    String b_k = "04";
-    String b_q = "03";
+    String w_k = "74";//keep track of white king position for special case
+    String w_q = "73";//keep track of white queen position for special case
+    String b_k = "04";//keep track of black king position for special case
+    String b_q = "03";//keep track of black queen position for special case
 
-    //private JButn next = new JButton("next");
+
     public Chess() {
-
-        //nextbtn.setPreferredSize(new Dimension(20,20));
-        //btns.add(next);
-        //contents.add(next);
+        // set up the background color and initalize the chess positions
         try {
             Steps instructions = new Steps();
 
@@ -96,7 +94,7 @@ public class Chess extends JFrame implements ActionListener {
                      tiles[i][j] = new Tile(i, j, null, null);
                  }
             }
-
+            //initialize the chess positions
             black_bishop = ImageIO.read(getClass().getResource("black_bishop.png"));
             squares[0][2].setIcon(new ImageIcon(black_bishop));
             squares[0][5].setIcon(new ImageIcon(black_bishop));
@@ -207,7 +205,7 @@ public class Chess extends JFrame implements ActionListener {
         }
 
 
-        //contents.setBounds(300, 300, 300, 300);
+        //set up actionlistenener and handlers
         previous = new JButton("Previous");
         next = new JButton("Next");
         refresh = new JButton("Refresh");
@@ -238,7 +236,9 @@ public class Chess extends JFrame implements ActionListener {
     private class Handler implements ActionListener {
         @Override
         public void actionPerformed( ActionEvent e ){
-
+            // when previous button is clicked the location(x and y position) of the chess at the that of teh chess moving to are obtained
+            //as px, py(previous position) and nx,ny(net position). tiles are updated( chess imaged poped from the previous stack and added to next stack);
+            // label image are updated. similar to 'next' case but px, py are nx, ny.
             if (e.getSource() == previous) {
                 if (cnt == 0) return;
                 cnt--;
@@ -284,9 +284,11 @@ public class Chess extends JFrame implements ActionListener {
                 }
                 tiles[px][py].setImage(null);
 
-
+// when NETX button is clicked the location(x and y position) of the chess at the that of teh chess moving to are obtained
+                //as px, py(previous position) and nx,ny(net position). tiles are updated( chess imaged poped from the previous stack and added to next stack);
+                // label image are updated.
             } else if (e.getSource() == next) {
-                if (cnt == steps.size() - 1) return;
+                if (cnt == steps.size()) return;
 
                 if(steps.get(cnt).prev.equals("O-O")) {
                     System.out.print("O-O");
@@ -327,22 +329,19 @@ public class Chess extends JFrame implements ActionListener {
 
 
                 Image cur_image = (Image) tiles[px][py].getStack().pop();
-                if(tiles[px][py].getStack().size() == 0 || tiles[px][py].getStack().peek() == null) {
+//                if(tiles[px][py].getStack().size() == 0 || tiles[px][py].getStack().peek() == null) {
+//                    squares[px][py].setIcon(null);
+//                } else {
                     squares[px][py].setIcon(null);
-                } else {
-
-                    squares[px][py].setIcon(new ImageIcon((Image)(tiles[px][py].getStack().peek())));
-                }
+//                }
 
 
                 tiles[nx][ny].setName(tiles[px][py].getName());
                 tiles[px][py].setName(null);
                 tiles[nx][ny].getStack().add(cur_image);
-                if (cur_image == null) {
-                    squares[nx][ny].setIcon(null);
-                } else {
+
                     squares[nx][ny].setIcon(new ImageIcon(cur_image));
-                }
+
                 tiles[px][py].setImage(null);
 
                 cnt++;
@@ -354,7 +353,7 @@ public class Chess extends JFrame implements ActionListener {
 
             turn = !turn;
         }
-
+    // reset th whole chess background and tiles.
         public void reSet() {
             turn = true;
 
@@ -480,7 +479,7 @@ public class Chess extends JFrame implements ActionListener {
         }
     }
 
-
+    //handle special case
     public void ooCase() {
         int kx;
         int ky;
@@ -490,10 +489,9 @@ public class Chess extends JFrame implements ActionListener {
             System.out.println(kx + "  " + ky);
             while (ky <= 7 && (tiles[kx][ky].getName() == null || !tiles[kx][ky].getName().equals("w_rook"))) {
                 ky++;
-                System.out.println(ky);
+                //System.out.println(ky);
             }
-//            System.out.println(kx + "  " + ky);//rook position
-//            System.out.println("found" + " " + tiles[kx][ky].getName());
+//
             StringBuilder strrxy = new StringBuilder();
             strrxy.append(kx).append(((int)(w_k.charAt(1) - '0') + ky) / 2);
             StringBuilder strkxy = new StringBuilder();
@@ -505,12 +503,11 @@ public class Chess extends JFrame implements ActionListener {
         } else {
             kx = (int) b_k.charAt(0) - '0';
             ky = (int) b_k.charAt(1) - '0';
-            System.out.println(kx + "  " + ky);
+            //System.out.println(kx + "  " + ky);
             while (ky <= 7 && (tiles[kx][ky].getName() == null || !tiles[kx][ky].getName().equals("b_rook"))) {
                 ky++;
             }
-//            System.out.println(kx + "  " + ky);
-//            System.out.println("found" + " " + tiles[kx][ky].getName());
+
             StringBuilder strrxy = new StringBuilder();
             strrxy.append(kx).append((((int)(b_k.charAt(1) - '0') + ky) / 2));
             StringBuilder strkxy = new StringBuilder();
@@ -532,8 +529,7 @@ public class Chess extends JFrame implements ActionListener {
             while (ky >= 7 && (tiles[kx][ky].getName() == null || !tiles[kx][ky].getName().equals("w_rook"))) {
                 ky--;
             }
-//            System.out.println(kx + "  " + ky);//rook position
-//            System.out.println("found" + " " + tiles[kx][ky].getName());
+
             StringBuilder strrxy = new StringBuilder();
             strrxy.append(kx).append(((int)(w_k.charAt(1) - '0') + ky) / 2);
             StringBuilder strkxy = new StringBuilder();
@@ -548,8 +544,7 @@ public class Chess extends JFrame implements ActionListener {
             while (ky >0 && (tiles[kx][ky].getName() == null || !tiles[kx][ky].getName().equals("b_rook"))) {
                 ky--;
             }
-//            System.out.println(kx + "  " + ky);
-//            System.out.println("found" + " " + tiles[kx][ky].getName());
+
             StringBuilder strrxy = new StringBuilder();
             strrxy.append(kx).append((((int)(b_k.charAt(1) - '0') + ky) / 2));
             StringBuilder strkxy = new StringBuilder();
